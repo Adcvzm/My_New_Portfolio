@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-family: 'Courier New', Courier, monospace; /* Custom font */
+        }
+
+        /* Form Styling */
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="datetime-local"], button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #007bff; /* Blue foreground */
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace; /* Custom font */
+        }
+
+        button {
+            background-color: #007bff; /* Blue foreground */
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        /* To-Do List Styling */
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #ffb6c1; /* Pink background for tasks */
+            color: white; /* White text */
+            font-family: 'Georgia', serif; /* Custom font */
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        /* Important task (starred) styling */
+        li.starred {
+            background-color: #ffeb3b; /* Yellow background for important tasks */
+            color: #333; /* Darker text for readability on yellow */
+            font-weight: bold;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* Buttons within the to-do list items */
+        .star-btn, .delete-btn {
+            background-color: transparent;
+            border: none;
+            font-size: 16px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .star-btn {
+            color: #ffd700; /* Gold star */
+        }
+
+        .delete-btn {
+            color: #ff4500; /* Red for delete */
+        }
+
+        .star-btn:hover, .delete-btn:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form id="todo-form">
+            <input type="text" id="todo-input" placeholder="Enter task...">
+            <input type="datetime-local" id="todo-datetime">
+            <button type="submit">Add Task</button>
+        </form>
+        <ul id="todo-list"></ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('todo-form');
+            const input = document.getElementById('todo-input');
+            const datetime = document.getElementById('todo-datetime');
+            const todoList = document.getElementById('todo-list');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const todoText = input.value.trim();
+                const todoDateTime = datetime.value;
+
+                if (todoText === '' || todoDateTime === '') {
+                    alert('Please enter both task and date/time.');
+                    return;
+                }
+
+                const todoItem = createTodoItem(todoText, todoDateTime);
+                todoList.appendChild(todoItem);
+
+                saveTodoToLocalStorage(todoText, todoDateTime);
+
+                input.value = '';
+                datetime.value = '';
+            });
+
+            function createTodoItem(text, datetime) {
+                const li = document.createElement('li');
+                li.textContent = `${text} - ${datetime}`;
+
+                const starButton = document.createElement('button');
+                starButton.textContent = '★';
+                starButton.classList.add('star-btn');
+                starButton.addEventListener('click', function() {
+                    li.classList.toggle('starred');
+                });
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.classList.add('delete-btn');
+                deleteButton.addEventListener('click', function() {
+                    li.remove();
+                    removeFromLocalStorage(text);
+                });
+
+                li.appendChild(starButton);
+                li.appendChild(deleteButton);
+
+                return li;
+            }
+
+            function saveTodoToLocalStorage(text, datetime) {
+                let todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos.push({ text, datetime });
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            function removeFromLocalStorage(todoText) {
+                let todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos = todos.filter(todo => todo.text !== todoText);
+                localStorage.setItem('todos', JSON.stringify(todos));
+            }
+
+            // Load tasks from local storage on page load
+            function loadTasks() {
+                let todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos.forEach(todo => {
+                    const todoItem = createTodoItem(todo.text, todo.datetime);
+                    todoList.appendChild(todoItem);
+                });
+            }
+
+            loadTasks();
+        });
+    </script>
+</body>
+</html>
